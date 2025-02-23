@@ -40,6 +40,9 @@ local function indent_region()
     end
 end
 
+vim.keymap.set({"v", "n", "i"}, "<C-x>1", ":split<CR>", { noremap = true, silent = true })
+vim.keymap.set({"v", "n", "i"}, "<C-x>3", ":vsplit<CR>", { noremap = true, silent = true })
+
 -- Map <Leader>i to indent the visually selected block
 vim.keymap.set("v", "<Leader>i", indent_region, { noremap = true, silent = true })
 
