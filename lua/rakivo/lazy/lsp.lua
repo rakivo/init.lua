@@ -78,19 +78,35 @@ return {
         local cmp_select = { behavior = cmp.SelectBehavior.Select }
 
         cmp.setup({
+            completion = {
+                autocomplete = false,
+            },
             snippet = {
                 expand = function(args)
                     require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
                 end,
             },
             mapping = cmp.mapping.preset.insert({
+                ["<M-[>"] = cmp.mapping(function(fallback)
+                    if not cmp.visible() then
+                        cmp.complete()
+                    else
+                        cmp.select_prev_item(cmp_select)
+                    end
+                end, { "i", "c" }),
+                ["<M-]>"] = cmp.mapping(function(fallback)
+                    if not cmp.visible() then
+                        cmp.complete()
+                    else
+                        cmp.select_next_item(cmp_select)
+                    end
+                end, { "i", "c" }),
                 ['<C-p>'] = cmp.mapping.select_prev_item(cmp_select),
                 ['<C-n>'] = cmp.mapping.select_next_item(cmp_select),
-                ['<C-y>'] = cmp.mapping.confirm({ select = true }),
-                ["<C-Space>"] = cmp.mapping.complete(),
+                ['<M-tab>'] = cmp.mapping.confirm({ select = true }),
+                -- ["<M-tab>"] = cmp.mapping.complete(),
             }),
             sources = cmp.config.sources({
-                { name = "copilot", group_index = 2 },
                 { name = 'nvim_lsp' },
                 { name = 'luasnip' }, -- For luasnip users.
             }, {
@@ -98,7 +114,24 @@ return {
             })
         })
 
+        local function hide_completion_menu()
+            if cmp.visible() then
+                cmp.close()
+            end
+        end
+
+        -- Call the function when leaving insert mode
+        vim.api.nvim_create_autocmd("InsertLeave", {
+            callback = hide_completion_menu,
+        })
+
+        -- Call the function when pressing Esc in insert mode
+        vim.keymap.set("i", "<Esc>", "<Esc>:lua require('cmp').close()<CR>", { noremap = true, silent = true })
+
         vim.diagnostic.config({
+            virtual_text = false,
+            signs = false,
+            underline = true,
             -- update_in_insert = true,
             float = {
                 focusable = false,

@@ -1,4 +1,4 @@
-require("theprimeagen")
+require("rakivo")
 
--- hello fem
+vim.opt.colorcolumn = ""
 

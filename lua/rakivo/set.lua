@@ -1,7 +1,12 @@
 vim.opt.guicursor = ""
 
-vim.opt.nu = true
-vim.opt.relativenumber = true
+-- vim.opt.nu = true
+-- vim.opt.relativenumber = true
+
+vim.opt.number = false         -- Disable line numbers
+vim.opt.relativenumber = false -- Disable relative line numbers
+vim.opt.signcolumn = "no"      -- Disable the sign column
+vim.opt.foldcolumn = "0"       -- Disable the fold column
 
 vim.opt.tabstop = 4
 vim.opt.softtabstop = 4
@@ -11,6 +16,8 @@ vim.opt.expandtab = true
 vim.opt.smartindent = true
 
 vim.opt.wrap = false
+
+vim.opt.wrap = true
 
 vim.opt.swapfile = false
 vim.opt.backup = false
