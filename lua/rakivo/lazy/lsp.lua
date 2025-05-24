@@ -27,59 +27,63 @@ return {
             vim.lsp.protocol.make_client_capabilities(),
             cmp_lsp.default_capabilities())
 
+        local on_attach = function(client, bufnr)
+          local opts = { noremap=true, silent=true, buffer=bufnr }
+          local buf_set_keymap = vim.api.nvim_buf_set_keymap
+        end
+
         require("fidget").setup({})
         require("mason").setup()
-        require("mason-lspconfig").setup({
-            ensure_installed = {
-                "lua_ls",
-                "rust_analyzer",
-                "gopls",
-            },
-            handlers = {
-                function(server_name) -- default handler (optional)
-                    require("lspconfig")[server_name].setup {
-                        capabilities = capabilities
-                    }
-                end,
 
-                zls = function()
-                    local lspconfig = require("lspconfig")
-                    lspconfig.zls.setup({
-                        root_dir = lspconfig.util.root_pattern(".git", "build.zig", "zls.json"),
-                        settings = {
-                            zls = {
-                                enable_inlay_hints = true,
-                                enable_snippets = true,
-                                warn_style = true,
-                            },
-                        },
-                    })
-                    vim.g.zig_fmt_parse_errors = 0
-                    vim.g.zig_fmt_autosave = 0
+        local mason_lspconfig = require("mason-lspconfig")
 
-                end,
-                ["lua_ls"] = function()
-                    local lspconfig = require("lspconfig")
-                    lspconfig.lua_ls.setup {
-                        capabilities = capabilities,
-                        settings = {
-                            Lua = {
-                                runtime = { version = "Lua 5.1" },
-                                diagnostics = {
-                                    globals = { "bit", "vim", "it", "describe", "before_each", "after_each" },
-                                }
-                            }
-                        }
-                    }
-                end,
-            }
-        })
+        local lspconfig = require("lspconfig")
+
+        -- default setup function
+        local function default_setup(server)
+          lspconfig[server].setup({
+            capabilities = capabilities,
+            on_attach = on_attach,
+          })
+        end
+
+        -- Setup all servers with default or custom config
+        for _, server in ipairs(mason_lspconfig.get_installed_servers()) do
+          if server == "zls" then
+            lspconfig.zls.setup({
+              root_dir = lspconfig.util.root_pattern(".git", "build.zig", "zls.json"),
+              settings = {
+                zls = {
+                  enable_inlay_hints = true,
+                  enable_snippets = true,
+                  warn_style = true,
+                },
+              },
+            })
+            vim.g.zig_fmt_parse_errors = 0
+            vim.g.zig_fmt_autosave = 0
+          elseif server == "lua_ls" then
+            lspconfig.lua_ls.setup({
+              capabilities = capabilities,
+              settings = {
+                Lua = {
+                  runtime = { version = "Lua 5.1" },
+                  diagnostics = {
+                    globals = { "bit", "vim", "it", "describe", "before_each", "after_each" },
+                  },
+                },
+              },
+            })
+          else
+            default_setup(server)
+          end
+        end
 
         local cmp_select = { behavior = cmp.SelectBehavior.Select }
 
         cmp.setup({
             completion = {
-                autocomplete = false,
+                autocomplete = { require("cmp.types").cmp.TriggerEvent.TextChanged }
             },
             snippet = {
                 expand = function(args)
@@ -104,6 +108,7 @@ return {
                 ['<C-p>'] = cmp.mapping.select_prev_item(cmp_select),
                 ['<C-n>'] = cmp.mapping.select_next_item(cmp_select),
                 ['<M-tab>'] = cmp.mapping.confirm({ select = true }),
+                ['<tab>'] = cmp.mapping.confirm({ select = true }),
                 -- ["<M-tab>"] = cmp.mapping.complete(),
             }),
             sources = cmp.config.sources({

@@ -2,6 +2,10 @@ require("rakivo.set")
 require("rakivo.remap")
 require("rakivo.lazy_init")
 
+require("lazy").setup({
+    { import = "rakivo.lazy" },
+})
+
 local augroup = vim.api.nvim_create_augroup
 local ThePrimeagenGroup = augroup('ThePrimeagen', {})
 
@@ -35,13 +39,6 @@ autocmd({"BufWritePre"}, {
     command = [[%s/\s\+$//e]],
 })
 
-autocmd('BufEnter', {
-    group = ThePrimeagenGroup,
-    callback = function()
-        vim.cmd.colorscheme("rose-pine-moon")
-    end
-})
-
 autocmd('LspAttach', {
     group = ThePrimeagenGroup,
     callback = function(e)
@@ -59,8 +56,9 @@ autocmd('LspAttach', {
     end
 })
 
+vim.cmd.colorscheme("habamax")
 vim.opt.clipboard = "unnamedplus"
-
+vim.o.termguicolors = true
 vim.g.netrw_browse_split = 0
 vim.g.netrw_banner = 0
 vim.g.netrw_winsize = 25

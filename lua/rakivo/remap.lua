@@ -40,8 +40,23 @@ local function indent_region()
     end
 end
 
-vim.keymap.set({"v", "n", "i"}, "<C-x>1", ":split<CR>", { noremap = true, silent = true })
-vim.keymap.set({"v", "n", "i"}, "<C-x>3", ":vsplit<CR>", { noremap = true, silent = true })
+-- C-x 2 → split horizontally
+vim.keymap.set({ "n", "i", "v" }, "<C-x>2", ":split<CR>", { noremap = true, silent = true })
+
+-- C-x 3 → split vertically
+vim.keymap.set({ "n", "i", "v" }, "<C-x>3", ":vsplit<CR>", { noremap = true, silent = true })
+
+-- C-x 1 → close all other splits (keep current)
+vim.keymap.set({ "n", "i", "v" }, "<C-x>1", "<Cmd>only<CR>", { noremap = true, silent = true })
+
+-- C-x 0 → close current split
+vim.keymap.set({ "n", "i", "v" }, "<C-x>0", "<Cmd>close<CR>", { noremap = true, silent = true })
+
+vim.keymap.set({ "n", "i", "v" }, "<C-x>J", "<Cmd>Ex <CR>", { noremap = true, silent = true })
+--
+-- Alt+2 → cycle to next window
+vim.keymap.set({ "n", "i", "v" }, "<M-2>", "<Cmd>wincmd w<CR>", { noremap = true, silent = true })
+
 
 -- Map <Leader>i to indent the visually selected block
 vim.keymap.set("v", "<Leader>i", indent_region, { noremap = true, silent = true })
