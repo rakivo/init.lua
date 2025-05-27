@@ -56,10 +56,44 @@ autocmd('LspAttach', {
     end
 })
 
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "go", "cpp", "c", "rust" },
+  callback = function(args)
+    local ft = vim.bo[args.buf].filetype
+    if ft == "go" then
+      vim.bo.makeprg = "go build"
+    elseif ft == "rust" then
+      vim.bo.makeprg = "cargo build"
+    elseif ft == "cpp" or ft == "c" then
+      vim.bo.makeprg = "g++ % -o %< && ./%<"
+    end
+  end,
+})
+
+-- Go-specific settings: use tabs, tab width 2
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "go",
+  callback = function()
+    vim.bo.expandtab = false      -- use tabs
+    vim.bo.tabstop = 2            -- width of tab character
+    vim.bo.shiftwidth = 2         -- indentation width
+    vim.bo.softtabstop = 2        -- number of spaces for <Tab>
+
+    vim.keymap.set("i", "<Tab>", function()
+      if vim.fn.pumvisible() == 1 then
+        return "<C-n>"  -- Keep completion menu navigation
+      else
+        return "<Tab>"  -- Insert literal tab character
+      end
+    end, { buffer = true, expr = true })
+  end,
+})
+
 vim.cmd.colorscheme("habamax")
 vim.opt.clipboard = "unnamedplus"
-vim.o.termguicolors = true
+vim.opt.termguicolors = true
 vim.g.netrw_browse_split = 0
 vim.g.netrw_banner = 0
 vim.g.netrw_winsize = 25
 vim.opt.showtabline = 0
+vim.opt.completeopt = { "menuone", "noinsert", "noselect" }

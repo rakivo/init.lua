@@ -186,9 +186,9 @@ vim.keymap.set(
     "oif err != nil {<CR>}<Esc>O.logger.Error(\"error\", \"error\", err)<Esc>F.;i"
 )
 
-vim.keymap.set("n", "<leader>ca", function()
-    require("cellular-automaton").start_animation("make_it_rain")
-end)
+vim.keymap.set("i", "<C-g>", "<Esc>")
+vim.keymap.set("c", "<C-g>", "<Esc>")
+vim.keymap.set("t", "<C-g>", "<C-\\><C-n>")
 
 vim.keymap.set("n", "<leader><leader>", function()
     vim.cmd("so")
