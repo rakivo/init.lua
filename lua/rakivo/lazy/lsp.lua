@@ -93,12 +93,8 @@ return {
 
         cmp.setup({
             completion = {
-                autocomplete = { require("cmp.types").cmp.TriggerEvent.TextChanged }
             },
             snippet = {
-                expand = function(args)
-                    require('luasnip').lsp_expand(args.body) -- For `luasnip` users.
-                end,
             },
             mapping = cmp.mapping.preset.insert({
                 ["<M-[>"] = cmp.mapping(function(fallback)

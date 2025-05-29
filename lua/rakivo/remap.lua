@@ -121,8 +121,17 @@ vim.keymap.set("x", "<leader>p", [["_dP]])
 vim.keymap.set({"n", "v"}, "<leader>y", [["+y]])
 vim.keymap.set("n", "<leader>Y", [["+Y]])
 
-vim.keymap.set({"n", "v", "i"}, "<M-1>", "<Cmd>bprevious<CR>")
-vim.keymap.set({"n", "v", "i"}, "<M-3>", "<Cmd>bnext<CR>")
+local function map_bufnav(key, cmd)
+  vim.keymap.set("n", key, cmd, { noremap = true, silent = true })
+  vim.keymap.set("i", key, "<Esc>" .. cmd .. "gi", { noremap = true, silent = true }) -- preserves insert mode
+  vim.keymap.set("v", key, "<Esc>" .. cmd, { noremap = true, silent = true })
+  vim.keymap.set("t", key, "<C-\\><C-n>" .. cmd, { noremap = true, silent = true })
+end
+
+map_bufnav("<M-1>", ":bprevious<CR>")
+map_bufnav("<M-3>", ":bnext<CR>")
+
+vim.keymap.set("v", "y", "y`>", { noremap = true })
 
 vim.keymap.set({"n", "v"}, "<leader>d", "\"_d")
 
@@ -189,7 +198,16 @@ vim.keymap.set(
 vim.keymap.set("i", "<C-g>", "<Esc>")
 vim.keymap.set("c", "<C-g>", "<Esc>")
 vim.keymap.set("t", "<C-g>", "<C-\\><C-n>")
+vim.keymap.set({ "n", "i", "v" }, "<M-`>", "<cmd>Telescope buffers<CR>", { noremap = true, silent = true })
 
 vim.keymap.set("n", "<leader><leader>", function()
     vim.cmd("so")
 end)
+
+-- Emacs like pasting
+vim.keymap.set("n", "p", "P", { noremap = true })
+
+-- Prevent 'd', 'x', and 'c' from overwriting buffer
+vim.keymap.set("n", "d", '"_d', { noremap = true })
+vim.keymap.set("n", "x", '"_x', { noremap = true })
+vim.keymap.set("n", "c", '"_c', { noremap = true })
