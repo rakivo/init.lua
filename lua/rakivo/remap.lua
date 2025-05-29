@@ -206,8 +206,3 @@ end)
 
 -- Emacs like pasting
 vim.keymap.set("n", "p", "P", { noremap = true })
-
--- Prevent 'd', 'x', and 'c' from overwriting buffer
-vim.keymap.set("n", "d", '"_d', { noremap = true })
-vim.keymap.set("n", "x", '"_x', { noremap = true })
-vim.keymap.set("n", "c", '"_c', { noremap = true })
