@@ -89,7 +89,7 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
-vim.cmd.colorscheme("habamax")
+-- vim.cmd.colorscheme("habamax")
 vim.opt.clipboard = "unnamedplus"
 vim.opt.termguicolors = true
 vim.g.netrw_browse_split = 0
@@ -97,3 +97,8 @@ vim.g.netrw_banner = 0
 vim.g.netrw_winsize = 25
 vim.opt.showtabline = 0
 vim.opt.completeopt = { "menuone", "noinsert", "noselect" }
+vim.cmd.colorscheme("naysayer")
+
+vim.g.loaded_ruby_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_node_provider = 0
