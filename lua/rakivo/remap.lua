@@ -100,6 +100,9 @@ end
 vim.keymap.set("n", "<leader>td", toggle_diagnostics, { noremap = true, silent = true })
 
 -- vim.api.nvim_set_keymap('i', '<C-h>', '<Left>', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<C-a>', '<C-o>0', { noremap = true, silent = true })
+vim.api.nvim_set_keymap('i', '<C-e>', '<C-o>$', { noremap = true, silent = true })
+
 vim.api.nvim_set_keymap('i', '<Char-0x08>', '<Left>', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('i', '<C-l>', '<Right>', { noremap = true, silent = true })
 

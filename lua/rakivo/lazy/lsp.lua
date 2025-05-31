@@ -24,6 +24,10 @@ return {
         "j-hui/fidget.nvim",
     },
 
+    opts = {
+      autoformat = false,
+    },
+
     config = function()
         require("conform").setup({
             formatters_by_ft = {
@@ -40,6 +44,14 @@ return {
         local on_attach = function(client, bufnr)
           local opts = { noremap=true, silent=true, buffer=bufnr }
           local buf_set_keymap = vim.api.nvim_buf_set_keymap
+          if client.name == "gopls" then
+            vim.api.nvim_create_autocmd("BufWritePre", {
+              buffer = bufnr,
+              callback = function()
+                vim.lsp.buf.format({ async = false })
+              end,
+            })
+          end
         end
 
         require("fidget").setup({})
@@ -54,8 +66,17 @@ return {
           lspconfig[server].setup({
             capabilities = capabilities,
             on_attach = on_attach,
+            settings = {
+              checkOnSave = {
+                enable = false,
+              }
+            }
           })
         end
+
+        lspconfig["rust-analyzer"] = {
+            checkOnSave = { enable = false }
+        }
 
         -- Setup all servers with default or custom config
         for _, server in ipairs(mason_lspconfig.get_installed_servers()) do
