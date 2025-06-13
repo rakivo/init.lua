@@ -1,178 +1,134 @@
 return {
-    "neovim/nvim-lspconfig",
-    dependencies = {
-        "stevearc/conform.nvim",
-        "williamboman/mason.nvim",
-        "williamboman/mason-lspconfig.nvim",
-        "hrsh7th/cmp-nvim-lsp",
-        {
-          "hrsh7th/cmp-buffer",
-          option = {
-            get_bufnrs = function()
-              return vim.api.nvim_list_bufs()
-            end
-          }
-        },
-        "hrsh7th/cmp-path",
-        "hrsh7th/cmp-cmdline",
-        {
-          "hrsh7th/nvim-cmp",
-          event = "InsertEnter",
-        },
-        "L3MON4D3/LuaSnip",
-        "saadparwaiz1/cmp_luasnip",
-        "j-hui/fidget.nvim",
-    },
+  "neovim/nvim-lspconfig",
+  dependencies = {
+    -- blink.cmp and optional compat layer
+    { "Saghen/blink.cmp",              version = "*" },
+    { "Saghen/blink.compat",           optional = true },
 
-    opts = {
-      autoformat = false,
-    },
+    -- your existing non-completion plugins
+    "stevearc/conform.nvim",
+    "williamboman/mason.nvim",
+    "williamboman/mason-lspconfig.nvim",
+    "j-hui/fidget.nvim",
+  },
 
-    config = function()
-        require("conform").setup({
-            formatters_by_ft = {
-            }
+  opts = {
+    autoformat = false,
+  },
+
+  config = function()
+    -- Conform
+    require("conform").setup({ formatters_by_ft = {} })
+
+    -- Fidget
+    require("fidget").setup({})
+
+    -- Mason + LSPconfig bootstrap
+    require("mason").setup()
+    local mason_lsp = require("mason-lspconfig")
+    local lspconfig  = require("lspconfig")
+
+    -- Build LSP capabilities via blink.cmp
+    local capabilities = vim.tbl_deep_extend(
+      "force",
+      {},
+      vim.lsp.protocol.make_client_capabilities(),
+      require("blink.cmp").get_lsp_capabilities()
+    )
+
+    local on_attach = function(client, bufnr)
+      -- Go auto‑format on save via gopls only
+      if client.name == "gopls" then
+        vim.api.nvim_create_autocmd("BufWritePre", {
+          buffer = bufnr,
+          callback = function() vim.lsp.buf.format({ async = false }) end,
         })
-        local cmp = require('cmp')
-        local cmp_lsp = require("cmp_nvim_lsp")
-        local capabilities = vim.tbl_deep_extend(
-            "force",
-            {},
-            vim.lsp.protocol.make_client_capabilities(),
-            cmp_lsp.default_capabilities())
-
-        local on_attach = function(client, bufnr)
-          local opts = { noremap=true, silent=true, buffer=bufnr }
-          local buf_set_keymap = vim.api.nvim_buf_set_keymap
-          if client.name == "gopls" then
-            vim.api.nvim_create_autocmd("BufWritePre", {
-              buffer = bufnr,
-              callback = function()
-                vim.lsp.buf.format({ async = false })
-              end,
-            })
-          end
-        end
-
-        require("fidget").setup({})
-        require("mason").setup()
-
-        local mason_lspconfig = require("mason-lspconfig")
-
-        local lspconfig = require("lspconfig")
-
-        -- default setup function
-        local function default_setup(server)
-          lspconfig[server].setup({
-            capabilities = capabilities,
-            on_attach = on_attach,
-            settings = {
-              checkOnSave = {
-                enable = false,
-              }
-            }
-          })
-        end
-
-        lspconfig["rust-analyzer"] = {
-            checkOnSave = { enable = false }
-        }
-
-        -- Setup all servers with default or custom config
-        for _, server in ipairs(mason_lspconfig.get_installed_servers()) do
-          if server == "zls" then
-            lspconfig.zls.setup({
-              root_dir = lspconfig.util.root_pattern(".git", "build.zig", "zls.json"),
-              settings = {
-                zls = {
-                  enable_inlay_hints = true,
-                  enable_snippets = true,
-                  warn_style = true,
-                },
-              },
-            })
-            vim.g.zig_fmt_parse_errors = 0
-            vim.g.zig_fmt_autosave = 0
-          elseif server == "lua_ls" then
-            lspconfig.lua_ls.setup({
-              capabilities = capabilities,
-              settings = {
-                Lua = {
-                  runtime = { version = "Lua 5.1" },
-                  diagnostics = {
-                    globals = { "bit", "vim", "it", "describe", "before_each", "after_each" },
-                  },
-                },
-              },
-            })
-          else
-            default_setup(server)
-          end
-        end
-
-        local cmp_select = { behavior = cmp.SelectBehavior.Select }
-
-        cmp.setup({
-            completion = {
-            },
-            snippet = {
-            },
-            mapping = cmp.mapping.preset.insert({
-                ["<M-[>"] = cmp.mapping(function(fallback)
-                    if not cmp.visible() then
-                        cmp.complete()
-                    else
-                        cmp.select_prev_item(cmp_select)
-                    end
-                end, { "i", "c" }),
-                ["<M-]>"] = cmp.mapping(function(fallback)
-                    if not cmp.visible() then
-                        cmp.complete()
-                    else
-                        cmp.select_next_item(cmp_select)
-                    end
-                end, { "i", "c" }),
-                ['<C-p>'] = cmp.mapping.select_prev_item(cmp_select),
-                ['<C-n>'] = cmp.mapping.select_next_item(cmp_select),
-                ['<M-tab>'] = cmp.mapping.confirm({ select = true }),
-                ['<tab>'] = cmp.mapping.confirm({ select = true }),
-                -- ["<M-tab>"] = cmp.mapping.complete(),
-            }),
-            sources = cmp.config.sources({
-                { name = 'nvim_lsp' },
-                { name = 'luasnip' }, -- For luasnip users.
-            }, {
-                { name = 'buffer' },
-            })
-        })
-
-        local function hide_completion_menu()
-            if cmp.visible() then
-                cmp.close()
-            end
-        end
-
-        -- Call the function when leaving insert mode
-        vim.api.nvim_create_autocmd("InsertLeave", {
-            callback = hide_completion_menu,
-        })
-
-        -- Call the function when pressing Esc in insert mode
-        vim.keymap.set("i", "<Esc>", "<Esc>:lua require('cmp').close()<CR>", { noremap = true, silent = true })
-
-        vim.diagnostic.config({
-            virtual_text = false,
-            signs = false,
-            underline = true,
-            -- update_in_insert = true,
-            float = {
-                focusable = false,
-                style = "minimal",
-                border = "rounded",
-                source = "always",
-                header = "",
-                prefix = "",
-            },
-        })
+      end
     end
+
+    -- Default LSP setup helper
+    local function setup_server(name, opts)
+      lspconfig[name].setup(vim.tbl_deep_extend("force", {
+        capabilities = capabilities,
+        on_attach    = on_attach,
+      }, opts or {}))
+    end
+
+    -- Rust‑analyzer tweak
+    setup_server("rust-analyzer", { settings = { ["rust-analyzer"] = { checkOnSave = { enable = false } } } })
+
+    -- Per‑server customizations
+    for _, srv in ipairs(mason_lsp.get_installed_servers()) do
+      if srv == "zls" then
+        setup_server("zls", {
+          root_dir = lspconfig.util.root_pattern(".git", "build.zig", "zls.json"),
+          settings = { zls = { enable_inlay_hints = true, enable_snippets = true, warn_style = true } },
+        })
+        vim.g.zig_fmt_parse_errors = 0
+        vim.g.zig_fmt_autosave      = 0
+
+      elseif srv ~= "rust-analyzer" then
+        setup_server(srv)
+      end
+    end
+
+    -- -----------------------------------------------------------------------
+    -- blink.cmp setup
+    -- -----------------------------------------------------------------------
+    local blink = require("blink.cmp")
+    blink.setup({
+      -- which completion sources to enable
+      sources = {
+        default  = { "lsp", "path", "buffer" },
+      },
+
+      -- keymaps for navigation & confirmation
+      keymap = {
+        preset = "none",          -- disable all defaults
+        ["<C-n>"] = { "insert_next" },
+        ["<C-p>"] = { "insert_prev" },
+        ["<M-Tab>"] = { "accept" },
+        ["<Esc>"] = { "hide", "fallback" },
+      },
+
+      completion = {
+        menu = {
+          enabled = false,
+        },
+        ghost_text = {
+          enabled            = true,
+          show_with_selection    = true,  -- still show when you’ve moved in the menu
+          show_without_selection = true, -- don’t ghost‑text the first item automatically
+          show_with_menu         = true, -- since there is no menu, we turn this off
+          show_without_menu      = true,  -- crucial: show ghost text when menu is closed
+        },
+        trigger = {
+         -- disable the normal “on keyword” (alphanumeric) trigger
+         show_on_keyword                     = false,
+         -- allow “trigger characters” (LSP‐defined *plus* your “.”)
+         show_on_trigger_character           = true,
+         -- ensure that typing a trigger char in insert mode pops it open
+         show_on_insert_on_trigger_character = true,
+         -- don’t auto‑retrigger after accepting on a trigger char
+         show_on_accept_on_trigger_character = false,
+        },
+      }
+    })
+    -- -----------------------------------------------------------------------
+
+    -- Diagnostics display
+    vim.diagnostic.config({
+      virtual_text = false,
+      signs        = false,
+      underline    = true,
+      float = {
+        focusable = false,
+        style     = "minimal",
+        border    = "rounded",
+        source    = "always",
+        header    = "",
+        prefix    = "",
+      },
+    })
+  end,
 }

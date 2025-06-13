@@ -57,6 +57,17 @@ vim.keymap.set({ "n", "i", "v" }, "<C-x>J", "<Cmd>Ex <CR>", { noremap = true, si
 -- Alt+2 → cycle to next window
 vim.keymap.set({ "n", "i", "v" }, "<M-2>", "<Cmd>wincmd w<CR>", { noremap = true, silent = true })
 
+-- Normal‑mode window navigation
+vim.keymap.set("n", "<C-x>h", "<C-w>h", { noremap = true, silent = true })
+vim.keymap.set("n", "<C-x>j", "<C-w>j", { noremap = true, silent = true })
+vim.keymap.set("n", "<C-x>k", "<C-w>k", { noremap = true, silent = true })
+vim.keymap.set("n", "<C-x>l", "<C-w>l", { noremap = true, silent = true })
+
+-- Terminal‑mode window navigation
+vim.keymap.set("t", "<C-x>h", "<C-\\><C-n><C-w>h", { noremap = true, silent = true })
+vim.keymap.set("t", "<C-x>j", "<C-\\><C-n><C-w>j", { noremap = true, silent = true })
+vim.keymap.set("t", "<C-x>k", "<C-\\><C-n><C-w>k", { noremap = true, silent = true })
+vim.keymap.set("t", "<C-x>l", "<C-\\><C-n><C-w>l", { noremap = true, silent = true })
 
 -- Map <Leader>i to indent the visually selected block
 vim.keymap.set("v", "<Leader>i", indent_region, { noremap = true, silent = true })
