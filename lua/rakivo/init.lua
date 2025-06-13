@@ -6,6 +6,60 @@ require("lazy").setup({
     { import = "rakivo.lazy" },
 })
 
+vim.api.nvim_create_user_command("Run", function(opts)
+  local cmd = opts.args
+  local qf_items = {}
+
+  -- start an async job
+  vim.fn.jobstart(cmd, {
+    stdout_buffered = true,
+    stderr_buffered = true,
+
+    -- collect stdout lines
+    on_stdout = function(_, data)
+      if data then
+        for _, line in ipairs(data) do
+          if #line > 0 then
+            table.insert(qf_items, { filename = "", lnum = 1, col = 1, text = line })
+          end
+        end
+      end
+    end,
+
+    -- collect stderr lines
+    on_stderr = function(_, data)
+      if data then
+        for _, line in ipairs(data) do
+          if #line > 0 then
+            table.insert(qf_items, { filename = "", lnum = 1, col = 1, text = line })
+          end
+        end
+      end
+    end,
+
+    -- when the process exits, populate Quickfix and open it
+    on_exit = function()
+      -- set qflist, replacing any existing list
+      vim.fn.setqflist({}, "r", {
+        title = "Run: " .. cmd,
+        items = qf_items,
+      })
+
+      -- open Quickfix at the bottom
+      vim.cmd("botright copen")
+    end,
+  })
+end, {
+  nargs     = "+",
+  complete  = "shellcmd",
+})
+
+vim.keymap.set("n", "<leader>Q", function()
+  vim.cmd("botright copen")  -- open at bottom
+  vim.cmd("wincmd _")        -- maximize height
+  vim.cmd("wincmd |")        -- maximize width
+end, { noremap = true, silent = true })
+
 local augroup = vim.api.nvim_create_augroup
 local ThePrimeagenGroup = augroup('ThePrimeagen', {})
 

@@ -40,22 +40,38 @@ local function indent_region()
     end
 end
 
+local wk = vim.api.nvim_create_autocmd
+
+-- 1) Your global mappings
+local global_opts = { noremap = true, silent = true }
+
 -- C-x 2 → split horizontally
-vim.keymap.set({ "n", "i", "v" }, "<C-x>2", ":split<CR>", { noremap = true, silent = true })
+vim.keymap.set({ "n", "i", "v" }, "<C-x>2", ":split<CR>", global_opts)
 
 -- C-x 3 → split vertically
-vim.keymap.set({ "n", "i", "v" }, "<C-x>3", ":vsplit<CR>", { noremap = true, silent = true })
+vim.keymap.set({ "n", "i", "v" }, "<C-x>3", ":vsplit<CR>", global_opts)
 
 -- C-x 1 → close all other splits (keep current)
-vim.keymap.set({ "n", "i", "v" }, "<C-x>1", "<Cmd>only<CR>", { noremap = true, silent = true })
+vim.keymap.set({ "n", "i", "v" }, "<C-x>1", "<Cmd>only<CR>", global_opts)
 
 -- C-x 0 → close current split
-vim.keymap.set({ "n", "i", "v" }, "<C-x>0", "<Cmd>close<CR>", { noremap = true, silent = true })
+vim.keymap.set({ "n", "i", "v" }, "<C-x>0", "<Cmd>close<CR>", global_opts)
 
-vim.keymap.set({ "n", "i", "v" }, "<C-x>J", "<Cmd>Ex <CR>", { noremap = true, silent = true })
+vim.keymap.set({ "n", "i", "v" }, "<C-x>J", "<Cmd>Ex <CR>", global_opts)
 --
 -- Alt+2 → cycle to next window
-vim.keymap.set({ "n", "i", "v" }, "<M-2>", "<Cmd>wincmd w<CR>", { noremap = true, silent = true })
+vim.keymap.set({ "n", "i", "v" }, "<M-2>", "<Cmd>wincmd w<CR>", global_opts)
+
+wk("FileType", {
+  pattern = { "qf", "netrw" },
+  callback = function(args)
+    local buf_opts = vim.tbl_extend("force", global_opts, { buffer = args.buf })
+    vim.keymap.set({ "n", "i", "v" }, "<C-x>1", "<Cmd>only<CR>", buf_opts)
+    vim.keymap.set({ "n", "i", "v" }, "<C-x>0", "<Cmd>close<CR>", buf_opts)
+    vim.keymap.set({ "n", "i", "v" }, "<C-x>J", "<Cmd>Ex<CR>",    buf_opts)
+    vim.keymap.set({ "n", "i", "v" }, "<M-2>",     "<Cmd>wincmd w<CR>", buf_opts)
+  end
+})
 
 -- Normal‑mode window navigation
 vim.keymap.set("n", "<C-x>h", "<C-w>h", { noremap = true, silent = true })
@@ -72,43 +88,45 @@ vim.keymap.set("t", "<C-x>l", "<C-\\><C-n><C-w>l", { noremap = true, silent = tr
 -- Map <Leader>i to indent the visually selected block
 vim.keymap.set("v", "<Leader>i", indent_region, { noremap = true, silent = true })
 
-vim.keymap.set("n", "<M-r>", function()
-    -- Iterate through command history to find the latest :make command
-    for i = -1, -vim.fn.histnr("cmd"), -1 do
-        local cmd = vim.fn.histget("cmd", i)
-        if cmd and cmd:match("^make") then
-            vim.cmd(cmd)
-            return
-        end
-    end
+vim.api.nvim_create_autocmd("QuickFixCmdPost", {
+  pattern = { "make*", "grep*" },
+  callback = function()
+    -- Open Quickfix at bottom using half of the current screen height
+    local height = math.floor(vim.o.lines / 2) - 2
+    vim.cmd(height .. "copen")
+    vim.cmd("wincmd J")  -- move QF window to the bottom just in case
+  end,
+})
 
-    -- Notify if no :make command is found
+vim.cmd([[
+  cnoreabbrev <expr> make v:cmdbang ? 'make' : 'make!'
+]])
+
+vim.keymap.set("n", "<M-r>", function()
+  -- Find latest :make command from history
+  local cmd = nil
+  for i = -1, -vim.fn.histnr("cmd"), -1 do
+    local entry = vim.fn.histget("cmd", i)
+    if entry and entry:match("^make") then
+      cmd = entry
+      break
+    end
+  end
+
+  if not cmd then
     vim.notify("No recent :make command found.", vim.log.levels.WARN)
+    return
+  end
+
+  vim.cmd(cmd)
+
+  -- Open QF window at bottom first (custom height)
+  local height = math.floor(vim.o.lines / 2) - 3
+  vim.cmd(height .. "copen")
+  vim.cmd("wincmd J")
 end, { noremap = true, silent = true })
 
-local function toggle_diagnostics()
-    local bufnr = vim.api.nvim_get_current_buf()
-    local diagnostics_active = vim.diagnostic.config().virtual_text ~= false
-    if diagnostics_active then
-        vim.lsp.inlay_hint(bufnr, false)
-        -- Disable diagnostics display
-        vim.diagnostic.config({
-            virtual_text = false,
-            signs = false,
-            underline = false,
-        })
-    else
-        vim.lsp.inlay_hint(bufnr, true)
-        -- Enable diagnostics display
-        vim.diagnostic.config({
-            virtual_text = true,
-            signs = true,
-            underline = true,
-        })
-    end
-end
-
-vim.keymap.set("n", "<leader>td", toggle_diagnostics, { noremap = true, silent = true })
+vim.o.quickfixtextfunc = ''
 
 -- vim.api.nvim_set_keymap('i', '<C-h>', '<Left>', { noremap = true, silent = true })
 vim.api.nvim_set_keymap('i', '<C-a>', '<C-o>0', { noremap = true, silent = true })
