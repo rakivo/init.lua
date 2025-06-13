@@ -12,3 +12,7 @@ vim.g.neovide_hide_mouse_when_typing = true
 vim.g.neovide_cursor_animation_length = 0
 vim.g.neovide_scroll_animation_length = 0
 vim.o.guifont = "Consolas:h14"
+
+vim.api.nvim_set_hl(0, "BlinkCmpGhostText", { fg = "#7f89a3", bg = "NONE", italic = true })
+
+
