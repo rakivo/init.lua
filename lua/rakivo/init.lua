@@ -157,15 +157,3 @@ vim.cmd.colorscheme("naysayer")
 vim.g.loaded_ruby_provider = 0
 vim.g.loaded_perl_provider = 0
 vim.g.loaded_node_provider = 0
-
-vim.opt_global.iskeyword:append("-")
-vim.opt_global.iskeyword:append("_")
-
--- And enforce per-buffer (some ftplugins reset it)
-vim.api.nvim_create_autocmd({ "BufReadPost", "BufNewFile", "FileType" }, {
-  callback = function()
-    vim.opt_local.iskeyword:append("-")
-    vim.opt_local.iskeyword:append("_")
-  end,
-})
-
