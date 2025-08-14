@@ -232,7 +232,9 @@ vim.keymap.set(
 vim.keymap.set("i", "<C-g>", "<Esc>")
 vim.keymap.set("c", "<C-g>", "<Esc>")
 vim.keymap.set("t", "<C-g>", "<C-\\><C-n>")
-vim.keymap.set({ "n", "i", "v" }, "<M-`>", "<cmd>Telescope buffers<CR>", { noremap = true, silent = true })
+vim.keymap.set({ "n", "i", "v" }, "<M-`>", function()
+  require("fzf-lua").buffers()
+end, { noremap = true, silent = true })
 
 vim.keymap.set("n", "<leader><leader>", function()
     vim.cmd("so")
