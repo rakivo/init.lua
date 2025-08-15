@@ -248,5 +248,5 @@ vim.keymap.set("n", "<leader>gg", function()
 end, { desc = "Open Neogit" })
 
 -- Bind hop pattern to /
-vim.keymap.set('n', '/', ':HopPattern<CR>', { desc = 'Hop to pattern' })
+vim.keymap.set('n', '<C-s>', ':HopPattern<CR>', { desc = 'Hop to pattern' })
 
